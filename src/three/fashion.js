@@ -342,6 +342,17 @@ function fabricCanvas(p) {
   }
   return c;
 }
+/** Fabric for the people in the store: { fabric, c1, c2, c3 } with a tiling repeat, cached per look. */
+const cloth = new Map();
+export function clothTexture(spec, rx = 1, ry = 1) {
+  const key = [spec.fabric, spec.c1, spec.c2, spec.c3, rx, ry].join('|');
+  if (cloth.has(key)) return cloth.get(key);
+  const seed = [...key].reduce((a, ch) => (a * 31 + ch.charCodeAt(0)) >>> 0, 7);
+  const t = toTexture(fabricCanvas({ id: seed % 9973, c1: spec.c1, c2: spec.c2 || spec.c1, c3: spec.c3 || spec.c2 || spec.c1, fabric: spec.fabric }));
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rx, ry);
+  cloth.set(key, t);
+  return t;
+}
 function fabricTexture(p) {
   p._tex = p._tex || {};
   if (p._tex.fabric) return p._tex.fabric;

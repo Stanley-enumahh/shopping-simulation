@@ -53,7 +53,10 @@ export default function Checkout() {
   const basket = useMemo(() => buildBasket(), []);
 
   useEffect(() => {
-    const cashier = makePerson({ skin: SKIN[2], shirt: '#1f7a55', apron: '#f5f5f5', pants: '#263238', hair: 'puff', hairColor: '#1a1a1a' });
+    const cashier = makePerson({
+      figure: 'f', skin: SKIN[2], hair: 'bun', hairColor: '#1a1a1a', logo: true, badge: 'ADA',
+      top: { kind: 'polo', color: '#1f7a55' }, bottom: { kind: 'trousers', color: '#263238' },
+    });
     cashier.root.position.set(cx + 0.35, 0, cz + 0.85); cashier.root.rotation.y = Math.PI;
     cashierRef.current.add(cashier.root);
     world.till = {

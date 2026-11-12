@@ -12,12 +12,19 @@ import { getState } from '../store';
 // Other shoppers walk the aisles, stop at shelves, fill their baskets, pay and leave.
 // A security guard at the door greets you. Announcements and distant trolleys add life.
 const FRONT_Z = 7.9, BACK_Z = -8.5, DOOR = [0, 10.45], TILL_SPOT = [4.3, 8.05], QUEUE_SPOT = [2.7, 7.9];
+// A Lagos crowd: Ankara, aso-oke, kaftans, jerseys, jeans; gele, fila, braids, locs, fades.
+const ANKARA_A = { fabric: 'ankara', c2: '#1a237e', c3: '#ffd600' }, ANKARA_B = { fabric: 'ankara', c2: '#ffeb3b', c3: '#e65100' };
 const LOOKS = [
-  { skin: SKIN[1], shirt: '#c0392b', pants: '#2b2f3a', hair: 'short' },
-  { skin: SKIN[3], shirt: '#f4c430', pants: '#3d3d6b', hair: 'wrap', hairColor: '#7b1fa2' },
-  { skin: SKIN[0], shirt: '#2e7d32', pants: '#5d4037', hair: 'puff' },
-  { skin: SKIN[5], shirt: '#ffffff', pants: '#1a237e', hair: 'short', hairColor: '#2b2b2b' },
+  { figure: 'm', build: 'avg', skin: SKIN[1], top: { kind: 'shirt', color: '#00897b', fabric: 'ankara', c2: '#ffd600', c3: '#d84315' }, bottom: { kind: 'trousers', color: '#2b2f3a' }, hair: 'fade', shoes: '#3e2723' },
+  { figure: 'f', build: 'avg', skin: SKIN[3], top: { kind: 'tee', color: '#e65100', ...ANKARA_A }, bottom: { kind: 'wrapper', color: '#e65100', ...ANKARA_A }, hair: 'none', headwear: { kind: 'gele', c1: '#7b1fa2', c2: '#ffd54f', c3: '#4a148c' }, shoes: '#8d6e63' },
+  { figure: 'f', build: 'slim', skin: SKIN[0], top: { kind: 'tee', color: '#f4c430' }, bottom: { kind: 'jeans', color: '#3f5a8a', fabric: 'denim' }, hair: 'braids', hairColor: '#1a1a1a', shoes: '#f2f2f2' },
+  { figure: 'm', build: 'heavy', skin: SKIN[4], top: { kind: 'kaftan', color: '#f3ede1', fabric: 'kaftan', c2: '#c9a227' }, bottom: { kind: 'trousers', color: '#f3ede1' }, hair: 'none', headwear: { kind: 'fila', c1: '#6a1b9a', c2: '#ffd54f' }, shoes: '#6d3b1f' },
+  { figure: 'm', build: 'slim', skin: SKIN[5], top: { kind: 'tee', color: '#008751', fabric: 'jersey', c2: '#ffffff' }, bottom: { kind: 'jeans', color: '#2c3e66', fabric: 'denim' }, hair: 'locs', hairColor: '#2b1a10', shoes: '#f2f2f2' },
+  { figure: 'f', build: 'heavy', skin: SKIN[2], top: { kind: 'shirt', color: '#c2185b', sleeve: 'long' }, bottom: { kind: 'skirt', color: '#1a237e' }, hair: 'bun', hairColor: '#120c08', shoes: '#212121' },
+  { figure: 'm', build: 'avg', skin: SKIN[2], top: { kind: 'polo', color: '#455a64' }, bottom: { kind: 'jeans', color: '#33415c', fabric: 'denim' }, hair: 'low', headwear: { kind: 'cap', color: '#212121' }, shoes: '#f2f2f2' },
+  { figure: 'f', build: 'avg', skin: SKIN[4], top: { kind: 'tee', color: '#2e7d32', ...ANKARA_B }, bottom: { kind: 'skirt', color: '#2e7d32', ...ANKARA_B }, hair: 'afro', hairColor: '#1a1a1a', shoes: '#c9a227' },
 ];
+const SHOPPERS = 6;
 const GREETINGS = ['Good day! Welcome to Eko Mart.', 'You are welcome, oga. Baskets dey your hand already.', 'Welcome! Enjoy your shopping.'];
 const GOODBYES = ['Thank you, safe journey!', 'Thank you o, come again!', 'Bye bye, see you next time.'];
 const ANNOUNCEMENTS = [
@@ -29,6 +36,8 @@ const ANNOUNCEMENTS = [
 ];
 const rand = (a, b) => a + Math.random() * (b - a);
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+/** 0 -> 1 -> 0 over [a, b], eased at both ends. */
+const bump = (t, a, b) => (t <= a || t >= b ? 0 : Math.min(1, Math.sin(((t - a) / (b - a)) * Math.PI) * 1.25));
 
 /** Which shelf face a shopper standing in aisle `ai` sees when facing direction dx (+1 = +X). */
 function faceIndexFor(ai, dx) {
@@ -44,15 +53,19 @@ export default function People() {
     W.npcs = [];
 
     // Security guard by the entrance.
-    const guard = makePerson({ skin: SKIN[4], shirt: '#1f2a44', pants: '#1f2a44', hat: '#1f2a44', hair: 'none' });
+    const guard = makePerson({
+      figure: 'm', build: 'heavy', skin: SKIN[4], guard: true, hair: 'none', shoes: '#0d0d0d',
+      top: { kind: 'uniform', color: '#1f2a44' }, bottom: { kind: 'trousers', color: '#1a2238' }, headwear: { kind: 'guard', color: '#1f2a44' },
+    });
     guard.root.position.set(1.9, 0, 10.15); guard.root.rotation.y = Math.PI;
     root.add(guard.root);
     W.npcs.push({ x: 1.9, z: 10.15, r: 0.3 });
     let greetCooldown = 0, greetedOnce = false, saidBye = false;
 
     // Shoppers.
-    const shoppers = LOOKS.map((look, i) => {
-      const p = makePerson({ ...look, basket: true, scale: rand(0.95, 1.04) });
+    const looks = [...LOOKS].sort(() => Math.random() - 0.5).slice(0, SHOPPERS);
+    const shoppers = looks.map((look, i) => {
+      const p = makePerson({ ...look, basket: true, phone: true, scale: look.figure === 'f' ? rand(0.92, 0.99) : rand(0.98, 1.05) });
       root.add(p.root);
       const ai = i % 4;
       const s = { p, x: AISLE_X[ai], z: rand(-5, 5), heading: 0, path: [], state: 'idle', timer: rand(0.5, 3), items: [], speed: rand(0.85, 1.1), ai, coll: { x: 0, z: 0, r: 0.3 }, lastStep: 0 };
@@ -81,12 +94,27 @@ export default function People() {
     function startBrowse(s) {
       const dx = s.ai === 0 ? 1 : s.ai === 3 ? -1 : Math.random() < 0.5 ? 1 : -1;
       s.faceDx = dx; s.state = 'browse'; s.timer = 0;
+      // pick what to look at first, so the reach goes to the right shelf height
+      const fi = faceIndexFor(s.ai, dx);
+      s.target = fi < 0 ? -1 : fi * 8 + Math.floor(Math.random() * 8);
+      s.p.reachH = [-1, -0.5, 0, 1][s.target < 0 ? 2 : Math.floor((s.target % 8) / 2)];
+      s.checkPhone = Math.random() < 0.2;
     }
-    function addItem(s) {
-      const fi = faceIndexFor(s.ai, s.faceDx);
-      if (fi < 0) return;
-      const ti = fi * 8 + Math.floor(Math.random() * 8);
-      const entry = { ti, twist: rand(-0.3, 0.3), mesh: centredProduct(PRODUCTS[ti]) };
+    /** Take the item off the shelf into the right hand, to look at it. */
+    function takeItem(s) {
+      if (s.target < 0) return;
+      const mesh = centredProduct(PRODUCTS[s.target]);
+      mesh.position.set(0, -0.08, 0.05);
+      s.p.wristR.add(mesh);
+      s.inHand = { ti: s.target, twist: rand(-0.3, 0.3), mesh };
+    }
+    /** Put what is in the hand into the basket. */
+    function stowItem(s) {
+      const entry = s.inHand;
+      if (!entry) return;
+      s.inHand = null;
+      s.p.wristR.remove(entry.mesh);
+      entry.mesh.position.set(0, 0, 0);
       s.items.push(entry);
       s.p.basketItems.add(entry.mesh);
       packBasket(s.items).forEach((pose, i) => { s.items[i].mesh.position.copy(pose.pos); s.items[i].mesh.quaternion.copy(pose.quat); });
@@ -164,10 +192,19 @@ export default function People() {
         } else if (s.state === 'browse') {
           s.timer += dt;
           s.heading = Math.atan2(s.faceDx, 0);
-          p.reach = THREE.MathUtils.clamp(Math.sin(THREE.MathUtils.clamp((s.timer - 0.6) / 1.2, 0, 1) * Math.PI) * 1.2, 0, 1);
-          if (s.timer > 1.2 && !s.took) { s.took = true; if (Math.random() < 0.8) addItem(s); }
-          if (s.timer > rand(2.4, 2.6) + (s.items.length % 2)) {
-            s.took = false; p.reach = 0;
+          const tt = s.timer;
+          if (s.checkPhone) {
+            p.phone = bump(tt, 0.3, 3.4); // a quick look at the phone instead of the shelf
+          } else {
+            // reach to the shelf, take the item, look at it, then drop it in the basket
+            p.reach = bump(tt, 0.4, 2.0);
+            p.lookPitch = p.reachH * -0.15;
+            if (tt > 1.2 && !s.took) { s.took = true; if (Math.random() < 0.8) takeItem(s); }
+            p.inspect = s.inHand ? bump(tt, 1.6, 3.4) : 0;
+            if (tt > 3.2 && s.inHand) stowItem(s);
+          }
+          if (s.timer > 3.6 + (s.items.length % 2) * 0.6) {
+            s.took = false; p.reach = 0; p.inspect = 0; p.phone = 0; p.lookPitch = 0; stowItem(s);
             if (s.items.length >= 3 + Math.floor(Math.random() * 3)) {
               goTo(s, tillBusy(s) ? [...corridorPath(s, QUEUE_SPOT[0], QUEUE_SPOT[1])] : [...corridorPath(s, TILL_SPOT[0], TILL_SPOT[1])], tillBusy(s) ? 'queue' : 'pay');
             } else nextAisle(s);
@@ -175,6 +212,7 @@ export default function People() {
         } else if (s.state === 'queue') {
           s.heading = Math.PI * 0.4;
           s.timer += dt;
+          p.phone += (1 - p.phone) * Math.min(1, dt * 3); // scrolling while they wait
           if (!tillBusy(s)) goTo(s, [TILL_SPOT], 'pay');
           else if (s.timer > 12) goTo(s, [[0, 9.4], DOOR], 'leave');
         } else if (s.state === 'paying') {
@@ -193,7 +231,9 @@ export default function People() {
         dh = Math.atan2(Math.sin(dh), Math.cos(dh));
         p.root.rotation.y += dh * Math.min(1, dt * 7);
         p.root.position.set(s.x, 0, s.z);
-        p.lookYaw = 0;
+        if (s.state !== 'queue' && s.state !== 'browse') p.phone += (0 - p.phone) * Math.min(1, dt * 4);
+        // glance along the shelves while walking an aisle
+        p.lookYaw = s.state === 'walk' && Math.abs(s.z) < 7 ? Math.sin(t * 0.45 + p.seed) * 0.65 : 0;
         animatePerson(p, dt, moving, t);
         const stepN = Math.floor(p.phase / Math.PI);
         if (moving && stepN !== s.lastStep) { s.lastStep = stepN; sfx.stepAt(s.x, s.z); }
