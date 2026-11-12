@@ -54,9 +54,10 @@ body.touch kbd { display: none; }
 .where span { color: var(--muted); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .right { display: flex; gap: 8px; align-items: center; }
 .iconbtn { width: 44px; height: 44px; border-radius: 14px; background: rgba(255, 255, 255, .9); box-shadow: var(--shadow); display: grid; place-items: center; }
-.cartbtn { height: 44px; border-radius: 14px; background: rgba(255, 255, 255, .92); box-shadow: var(--shadow); display: flex; align-items: center; gap: 8px; padding: 0 14px 0 10px; }
-.cartbtn .count { min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px; background: var(--leaf); color: #fff; font-weight: 700; font-size: 12px; display: grid; place-items: center; font-variant-numeric: tabular-nums; }
-.cartbtn .total { font-weight: 700; font-variant-numeric: tabular-nums; }
+.cartbtn { position: relative; width: 44px; height: 44px; border-radius: 14px; background: rgba(255, 255, 255, .92); box-shadow: var(--shadow); display: grid; place-items: center; }
+.cartbtn .count { position: absolute; top: -6px; right: -6px; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px; background: var(--leaf); color: #fff;
+  font-weight: 700; font-size: 12px; display: grid; place-items: center; font-variant-numeric: tabular-nums; box-shadow: 0 0 0 2px #fff; }
+.cartbtn .count.zero { background: #9aa8a1; }
 .cartbtn.bump { animation: bump .45s cubic-bezier(.3, 1.6, .5, 1); }
 @keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.12); } 100% { transform: scale(1); } }
 
@@ -115,12 +116,12 @@ body.touch .hint { bottom: auto; top: calc(env(safe-area-inset-top, 0px) + 66px)
 .drag { margin: 0; text-align: center; font-size: 12px; color: var(--muted); }
 
 .joy { position: fixed; left: max(24px, calc(env(safe-area-inset-left, 0px) + 18px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 24px);
-  width: 150px; height: 150px; border-radius: 50%; background: rgba(255, 255, 255, .55); box-shadow: inset 0 0 0 2px rgba(28, 38, 33, .1), var(--shadow);
+  width: 118px; height: 118px; border-radius: 50%; background: rgba(255, 255, 255, .55); box-shadow: inset 0 0 0 2px rgba(28, 38, 33, .1), var(--shadow);
   touch-action: none; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
-.knob { position: absolute; left: 50%; top: 50%; width: 62px; height: 62px; margin: -31px 0 0 -31px; border-radius: 50%; background: var(--card);
+.knob { position: absolute; left: 50%; top: 50%; width: 48px; height: 48px; margin: -24px 0 0 -24px; border-radius: 50%; background: var(--card);
   box-shadow: 0 4px 12px rgba(28, 38, 33, .2); pointer-events: none; }
-.runbtn { position: fixed; left: calc(max(24px, env(safe-area-inset-left, 0px) + 18px) + 162px); bottom: calc(env(safe-area-inset-bottom, 0px) + 34px);
-  height: 48px; padding: 0 16px; border-radius: 24px; background: rgba(255, 255, 255, .82); box-shadow: var(--shadow); font-weight: 600; font-size: 13px; }
+.runbtn { position: fixed; left: calc(max(24px, env(safe-area-inset-left, 0px) + 18px) + 130px); bottom: calc(env(safe-area-inset-bottom, 0px) + 30px);
+  height: 44px; padding: 0 14px; border-radius: 24px; background: rgba(255, 255, 255, .82); box-shadow: var(--shadow); font-weight: 600; font-size: 13px; }
 .runbtn.on { background: var(--leaf); color: #fff; }
 
 /* talking: who is speaking and what they said */
@@ -134,7 +135,19 @@ body.touch .subtitle { top: calc(env(safe-area-inset-top, 0px) + 108px); font-si
 .prompt { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 22px);
   background: var(--ink); color: #fff; padding: 11px 18px; border-radius: 14px; font-weight: 600; box-shadow: var(--shadow); white-space: nowrap; max-width: calc(100vw - 32px); overflow: hidden; text-overflow: ellipsis; }
 .prompt.act { background: var(--leaf); height: 52px; padding: 0 26px; font-size: 16px; }
-body.touch .prompt { bottom: calc(env(safe-area-inset-bottom, 0px) + 190px); }
+body.touch .prompt { bottom: calc(env(safe-area-inset-bottom, 0px) + 158px); }
+
+/* the shareable flyer after checkout */
+.flyer { width: min(420px, 100%); max-height: calc(100% - 32px); overflow-y: auto; background: var(--card); border-radius: 22px; box-shadow: var(--shadow);
+  padding: 16px; display: grid; gap: 12px; animation: print .4s cubic-bezier(.2, .8, .3, 1); }
+.flyer h2 { margin: 0; font-family: var(--display); font-weight: 600; font-size: 21px; }
+.flyer p { margin: 0; color: var(--muted); font-size: 13.5px; line-height: 1.45; }
+.flyer img { width: 100%; max-height: 52vh; object-fit: contain; border-radius: 12px; background: var(--paper); box-shadow: inset 0 0 0 1px var(--line); }
+.sharegrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.sharegrid .btn { flex: none; gap: 8px; text-decoration: none; }
+.btn.wa { background: #25d366; color: #fff; }
+.btn.x { background: #111; color: #fff; }
+.sharegrid .span2 { grid-column: 1 / -1; }
 
 /* the till screen */
 .tillpanel { position: fixed; right: max(16px, env(safe-area-inset-right, 0px)); top: calc(env(safe-area-inset-top, 0px) + 66px);

@@ -43,6 +43,7 @@ const blockers = [
   { x0: TILL.cx + TILL.w / 2, x1: 8, z0: TILL.cz + TILL.d / 2 - 0.05, z1: TILL.cz + TILL.d / 2 + 0.01 },
 ];
 const BACK_LIMIT = FRIDGE.front + 0.6; // stay in front of the fridge doors
+const WALK = 1.75; // walking speed in m/s
 let phase = 'loading';
 let wasLocked = false;
 const tweens = [];
@@ -542,16 +543,16 @@ function update(dt) {
   }
   let len = Math.hypot(f, r);
   if (len > 1) { f /= len; r /= len; len = 1; }
-  // A relaxed shopping pace (about 1.4 m/s), with Shift for a brisk walk.
-  const speed = k.run ? 2.4 : 1.4, sy = Math.sin(W.yaw), cy = Math.cos(W.yaw);
+  // A comfortable shopping pace, with Shift (or the phone's Walk fast button) for a brisk walk.
+  const speed = k.run ? 2.9 : WALK, sy = Math.sin(W.yaw), cy = Math.cos(W.yaw);
   wish.set((-sy * f + cy * r) * speed, 0, (-cy * f - sy * r) * speed);
   W.vel.lerp(wish, 1 - Math.exp(-dt * (len > 0.01 ? 5 : 7)));
   W.pos.addScaledVector(W.vel, dt); collide(W.pos);
   const sp = Math.hypot(W.vel.x, W.vel.z);
-  W.moveAmt += (Math.min(1, sp / 1.4) - W.moveAmt) * Math.min(1, dt * 6);
-  W.stepPhase += sp * dt * (Math.PI / 0.66);
+  W.moveAmt += (Math.min(1, sp / WALK) - W.moveAmt) * Math.min(1, dt * 6);
+  W.stepPhase += sp * dt * (Math.PI / 0.7);
   const stepN = Math.floor(W.stepPhase / Math.PI);
-  if (stepN !== W.lastStep) { W.lastStep = stepN; if (sp > 0.3) sfx.step(stepN, sp / 1.4); }
+  if (stepN !== W.lastStep) { W.lastStep = stepN; if (sp > 0.3) sfx.step(stepN, sp / WALK); }
   const bobK = reduceMotion ? 0 : 1;
   W.bobY = Math.sin(W.stepPhase * 2) * 0.012 * W.moveAmt * bobK;
   W.bobX = Math.sin(W.stepPhase) * 0.008 * W.moveAmt * bobK;

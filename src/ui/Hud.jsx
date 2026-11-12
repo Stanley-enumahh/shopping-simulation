@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { PRODUCTS, fmt } from '../data/products';
-import { setSettings, setState, useStore } from '../store';
+import { getState, setSettings, setState, useStore } from '../store';
 import {
-  addToCart, coarsePointer, emptyCart, goPay, putBack, removeOne,
+  addToCart, coarsePointer, emptyCart, exitLock, goPay, putBack, removeOne,
   setJoy, startGame, toggleCart, toggleMute, world, enableTouch,
 } from '../game/world';
 import { cancelCheckout, leaveTill, payByCard, payByTransfer, sentTransfer, startCheckout, tapCard } from '../game/checkout';
 import { sfx } from '../game/audio';
+import { makeFlyer } from './flyer';
 
 const total = (cart) => cart.reduce((s, e) => s + PRODUCTS[e.ti].price, 0);
 function groupCart(list) {
@@ -57,12 +58,12 @@ function TopBar() {
             {muted ? <path d="m17 9 5 6M22 9l-5 6" /> : <path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" />}
           </svg>
         </button>
-        <button ref={btn} className="cartbtn" aria-label="Open basket" aria-expanded={open} title="Basket (C)"
+        <button ref={btn} className="cartbtn" aria-label={`Open basket, ${items(cart.length)}`} aria-expanded={open} title="Basket (C)"
           onClick={(e) => { e.currentTarget.blur(); sfx.init(); sfx.click(); toggleCart(); }}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1c2621" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M3 4h2.2l2.3 11h10.8l2.2-8H7" /><circle cx="9.5" cy="19.5" r="1.4" /><circle cx="17" cy="19.5" r="1.4" />
           </svg>
-          <span className="count">{cart.length}</span><span className="total">{fmt(total(cart))}</span>
+          <span className={'count' + (cart.length ? '' : ' zero')}>{cart.length}</span>
         </button>
       </div>
     </header>
@@ -127,7 +128,7 @@ function Hints() {
   const receipt = useStore((s) => s.receipt);
   const hover = useStore((s) => s.hover);
   const prompt = useStore((s) => s.prompt);
-  const settingsOpen = useStore((s) => s.settingsOpen);
+  const settingsOpen = useStore((s) => s.settingsOpen || !!s.flyer);
   if (phase === 'loading' || phase === 'intro' || phase === 'checkout') return null;
   const busy = phase === 'inspect' || phase === 'picking';
   return (
@@ -377,7 +378,46 @@ function Receipt() {
         <p className="date">Paid by {r.method}</p>
         <div className="barcode" aria-hidden="true" />
         <p className="thanks">Thanks for shopping with us!</p>
-        <button ref={done} className="btn primary" onClick={leaveTill}>Take my bags</button>
+        <button ref={done} className="btn primary" onClick={takeBags}>Take my bags</button>
+      </div>
+    </div>
+  );
+}
+
+/** Leave the till, then offer a shareable picture of what you bought. */
+async function takeBags() {
+  const r = getState().receipt;
+  let flyer = null;
+  try { if (r) flyer = await makeFlyer(r); } catch (e) { flyer = null; }
+  leaveTill();
+  if (flyer) { exitLock(); setState({ flyer }); }
+}
+
+function FlyerModal() {
+  const f = useStore((s) => s.flyer);
+  if (!f) return null;
+  const message = `${f.text} ${f.link}`.trim();
+  const file = typeof File === 'function' ? new File([f.blob], 'eko-fresh-mart-basket.png', { type: 'image/png' }) : null;
+  const canShareFile = !!(file && navigator.canShare && navigator.canShare({ files: [file] }));
+  const close = () => { sfx.click(); URL.revokeObjectURL(f.url); setState({ flyer: null }); };
+  const share = async () => {
+    try { await navigator.share({ files: [file], title: 'My Eko Fresh Mart basket', text: message }); } catch (e) { /* cancelled */ }
+  };
+  return (
+    <div className="modal">
+      <div className="flyer" role="dialog" aria-labelledby="flyTitle">
+        <h2 id="flyTitle">Share your basket</h2>
+        <img src={f.url} alt="Flyer showing the items you bought at Eko Fresh Mart and your total" />
+        <div className="sharegrid">
+          {canShareFile && <button className="btn primary span2" onClick={share}>Share picture…</button>}
+          <a className="btn wa" href={`https://wa.me/?text=${encodeURIComponent(message)}`} target="_blank" rel="noopener noreferrer">WhatsApp</a>
+          <a className="btn x" href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(f.text)}${f.link ? '&url=' + encodeURIComponent(f.link) : ''}`} target="_blank" rel="noopener noreferrer">Post on X</a>
+          <a className="btn ghost" href={f.url} download="eko-fresh-mart-basket.png">Save image</a>
+          <button className="btn ghost" onClick={close}>Done</button>
+        </div>
+        <p>{canShareFile
+          ? 'Share picture sends the image straight to WhatsApp, X or any app on your phone.'
+          : 'The WhatsApp and X buttons share a message with the link. To post the picture as well, save it and attach it.'}</p>
       </div>
     </div>
   );
@@ -406,6 +446,7 @@ export default function Hud() {
       <Intro />
       <SettingsPanel />
       <Receipt />
+      <FlyerModal />
       <Toast />
     </>
   );

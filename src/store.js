@@ -36,6 +36,7 @@ let state = {
   prompt: null, // short interaction hint, e.g. 'Press E to pay at the till'
   till: null, // checkout progress shown on screen, see game/checkout.js
   dragHint: false,
+  flyer: null, // { url, blob, text, link } the shareable picture shown after paying
   settings: loadSettings(),
 };
 const listeners = new Set();
