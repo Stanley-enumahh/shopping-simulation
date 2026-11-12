@@ -14,10 +14,11 @@ function lie(p) {
     if (p.H > d * 1.15) { q.setFromAxisAngle(Z_UP, Math.PI / 2); ex = p.H; hv = d; ez = d; }
     else { ex = d; hv = p.H; ez = d; }
   } else {
+    const s = p.fold || p; // clothes on hangers are folded into the basket
     const opts = [
-      { q: new THREE.Quaternion(), x: p.W, y: p.H, z: p.D },
-      { q: new THREE.Quaternion().setFromAxisAngle(X_AX, -Math.PI / 2), x: p.W, y: p.D, z: p.H },
-      { q: new THREE.Quaternion().setFromAxisAngle(Z_UP, Math.PI / 2), x: p.H, y: p.W, z: p.D },
+      { q: new THREE.Quaternion(), x: s.W, y: s.H, z: s.D },
+      { q: new THREE.Quaternion().setFromAxisAngle(X_AX, -Math.PI / 2), x: s.W, y: s.D, z: s.H },
+      { q: new THREE.Quaternion().setFromAxisAngle(Z_UP, Math.PI / 2), x: s.H, y: s.W, z: s.D },
     ];
     const o = opts.reduce((a, b) => (b.y < a.y ? b : a));
     q = o.q; ex = o.x; hv = o.y; ez = o.z;

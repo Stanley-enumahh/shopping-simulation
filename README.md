@@ -1,4 +1,4 @@
-# Eko Fresh Mart
+# Eko Mart
 
 A first-person 3D Nigerian supermarket you can walk around. Pick products off the shelf, turn them over in your hand, and fill your basket. Prices are in Naira.
 

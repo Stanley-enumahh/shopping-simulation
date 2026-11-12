@@ -377,6 +377,28 @@ function drawBack(p, W, H) {
   return c;
 }
 
+/** Card swing tag for clothes, shoes and accessories: brand band, name, size, price and barcode. */
+function drawSwing(p, W, H) {
+  const c = mkCanvas(W, H), g = c.getContext('2d'), pad = W * 0.1;
+  g.fillStyle = '#fbf8f1'; g.fillRect(0, 0, W, H);
+  const head = p.shape === 'cap' || p.shape === 'glasses' ? p.c1 : '#1c2621';
+  g.fillStyle = head; g.fillRect(0, 0, W, H * 0.3);
+  g.fillStyle = '#d9d2c3'; g.beginPath(); g.arc(W / 2, H * 0.07, W * 0.06, 0, Math.PI * 2); g.fill(); // string hole
+  g.fillStyle = inkOn(head);
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  const bf = fitLines(g, p.brand.toUpperCase(), W - pad * 2, H * 0.1, (s) => `600 ${s}px Fredoka, sans-serif`, 1, 1.1);
+  g.font = bf.font; g.fillText(bf.lines[0], W / 2, H * 0.2);
+  g.fillStyle = '#1c2621';
+  const lf = fitLines(g, p.line, W - pad * 2, H * 0.16, (s) => `600 ${s}px Figtree, sans-serif`, 2, 1.1);
+  g.font = lf.font; lf.lines.forEach((l, i) => g.fillText(l, W / 2, H * 0.37 + i * lf.s * 1.1));
+  g.fillStyle = '#5f6e67'; g.font = `500 ${H * 0.05}px "DM Mono", monospace`; g.fillText(p.size, W / 2, H * 0.57);
+  g.fillStyle = '#1c2621';
+  let ps = H * 0.12;
+  do { g.font = `600 ${ps}px Fredoka, sans-serif`; ps *= 0.94; } while (g.measureText(fmt(p.price)).width > W - pad * 2 && ps > 6);
+  g.fillText(fmt(p.price), W / 2, H * 0.7);
+  barcode(g, p, pad, H * 0.79, W - pad * 2, H * 0.16, false);
+  return c;
+}
 /** Product label. p._label = { aspect, kind } is set when its 3D shape is built. 'lo' for shelves, 'hi' up close. */
 export function labelTexture(p, res) {
   p._tex = p._tex || {};
@@ -387,7 +409,7 @@ export function labelTexture(p, res) {
   if (kind === 'wrap' || kind === 'band') { W = S * 2; H = Math.round(Math.max(64, Math.min(W, W / aspect))); }
   else if (aspect >= 1) { W = S; H = Math.max(32, Math.round(S / aspect)); }
   else { H = S; W = Math.max(32, Math.round(S * aspect)); }
-  return (p._tex[res] = toTexture(drawFront(p, W, H, kind)));
+  return (p._tex[res] = toTexture(kind === 'swing' ? drawSwing(p, W, H) : drawFront(p, W, H, kind)));
 }
 /** Back label, only drawn at close-up resolution (on the shelf the back faces the shelf). */
 export function backTexture(p) {

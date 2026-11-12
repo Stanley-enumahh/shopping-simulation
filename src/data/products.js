@@ -13,7 +13,20 @@ export const FACES = [
   { g: 4, side: -1, aisle: 3, cat: 'Cooking' },
   { g: 4, side: 1, aisle: 4, cat: 'Home & Health' },
 ];
-export const AISLES = { 1: 'Snacks', 2: 'Breakfast & Staples', 3: 'Drinks & Cooking', 4: 'Home & Health' };
+export const AISLES = { 1: 'Snacks & Fashion', 2: 'Breakfast & Staples', 3: 'Drinks & Cooking', 4: 'Home & Health' };
+// Fashion corner along the left wall of aisle 1: wall shelves for shoes, eyewear, caps and folded clothes,
+// plus face-out arms with hanging clothes. Products face +X (into the aisle).
+export const FASHION = {
+  wallX: -8, depth: 0.4,
+  shoes: { levels: [0.35, 0.8, 1.25], runs: [[-7.0, -4.9], [-4.7, -2.6]] },
+  glasses: { levels: [0.62, 0.98], runs: [[-2.4, -0.7], [-0.5, 1.0]] },
+  caps: { levels: [1.34, 1.68], runs: [[-2.4, -0.7], [-0.5, 1.0]] },
+  mirror: { z: 1.3, w: 0.5 },
+  folded: { levels: [0.3, 0.72], runs: [[1.6, 4.2], [4.4, 7.0]] },
+  hang: { hook: 1.98, arms: [2.4, 4.3, 6.2], length: 0.68 },
+};
+// "Grab & go" stand beside the till: small items, facing the queue (-Z).
+export const RACK = { x: 3.15, z0: 8.42, depth: 0.22, width: 0.5, levels: [0.5, 0.86, 1.22] };
 // Promo end-caps on the front end of each gondola: a pallet plus two shelves, facing the entrance.
 export const ENDCAP = { z: 7.22, depth: 0.4, levels: [0.12, 0.68, 1.2] };
 
@@ -23,6 +36,8 @@ const DEF = {
   keg: { w: 0.24, h: 0.34, d: 0.14 }, bale: { w: 0.3, h: 0.3, d: 0.13 }, carton: { w: 0.085, h: 0.24, d: 0.085 },
   can: { r: 0.033, h: 0.115 }, tin: { r: 0.04, h: 0.06 }, jar: { r: 0.045, h: 0.11 }, pet: { r: 0.036, h: 0.25 },
   glass: { r: 0.033, h: 0.23 }, tub: { r: 0.06, h: 0.09 },
+  shoe: { w: 0.22, h: 0.11, d: 0.29 }, cap: { w: 0.2, h: 0.09, d: 0.27 }, glasses: { w: 0.14, h: 0.05, d: 0.14 },
+  folded: { w: 0.32, h: 0.06, d: 0.26 }, hanger: { w: 0.5, h: 0.74, d: 0.03 },
 };
 const ROUND = new Set(['can', 'tin', 'jar', 'pet', 'glass', 'tub']);
 
@@ -89,7 +104,7 @@ const RAW = [
   ['Smile Bright', 'Toothpaste', 1400, 'box', '#e3f2fd', '#d32f2f', 140, 'g', 'Fluoride toothpaste with mint. Fights cavities.', { art: 'smile', w: 0.2, h: 0.05, d: 0.045 }],
   ['Cool Breeze', 'Menthol Rub', 500, 'tub', '#26a69a', '#ffffff', 25, 'g', 'Cooling menthol rub for headaches, catarrh and aches.', { art: 'leaf', r: 0.03, h: 0.03, cap: '#ffffff' }],
   ['SafeHaven', 'Ultra Thin Condoms', 1500, 'box', '#263238', '#00bcd4', 3, 'ct', 'Three ultra-thin latex condoms. Protects against pregnancy and STIs.', { art: 'shield', w: 0.085, h: 0.11, d: 0.03 }],
-  ['SafeHaven', 'Classic Condoms', 5000, 'box', '#263238', '#e91e63', 12, 'ct', 'Twelve classic latex condoms in a discreet box.', { art: 'shield', w: 0.11, h: 0.14, d: 0.045 }],
+  ['LoveGuard', 'Classic Condoms', 5000, 'box', '#4a148c', '#e91e63', 12, 'ct', 'Twelve classic latex condoms in a discreet box.', { art: 'shield', w: 0.11, h: 0.14, d: 0.045 }],
 
   // Back wall · Chilled drinks fridges (one product per glass door)
   ['Golden Malt', 'Malt Drink Bottle', 700, 'glass', '#3e2723', '#ffc107', 330, 'ml', 'Ice-cold malt in a returnable glass bottle.', { art: 'malt', fridge: 0, r: 0.033, h: 0.23 }],
@@ -115,6 +130,41 @@ const RAW = [
   // Sachet strips hanging off the cooking shelf
   ['Idunnu', 'Seasoning Sachet', 50, 'pillow', '#c62828', '#ffd600', 10, 'g', 'A single sachet of chicken seasoning. Enough for one pot.', { art: 'cubes', finish: 'foil', strip: [4, 1, 3.4], w: 0.07, h: 0.095, d: 0.012 }],
   ['Tomatino', 'Tomato Paste Sachet', 150, 'pillow', '#d50000', '#2e7d32', 70, 'g', 'Tomato paste in a handy sachet. No tin opener needed.', { art: 'tomato', finish: 'foil', strip: [4, 1, -3.4], w: 0.08, h: 0.11, d: 0.014 }],
+
+  // Fashion corner · shoes (each is a pair)
+  ['StrideNaija', 'White Sneakers', 18500, 'shoe', '#f5f5f5', '#1f7a55', 1, 'ct', 'Light everyday trainers with a cushioned sole.', { style: 'sneaker', size: 'Size 42', fashion: ['shoes', 0] }],
+  ['Oja Kicks', 'Canvas Shoes', 9500, 'shoe', '#1a237e', '#ffffff', 1, 'ct', 'Classic lace-up canvas shoes with a rubber toe cap.', { style: 'canvas', size: 'Size 41', fashion: ['shoes', 1] }],
+  ['Ikoyi Leather', 'Leather Loafers', 32000, 'shoe', '#6d3b1f', '#c9a227', 1, 'ct', 'Handmade brown leather loafers for work and owambe.', { style: 'loafer', size: 'Size 43', fashion: ['shoes', 2] }],
+  ['Aba Made', 'Palm Slippers', 4500, 'shoe', '#8d6e63', '#3e2723', 1, 'ct', 'Leather palm slippers with crossed straps, made in Aba.', { style: 'palm', size: 'Size 42', fashion: ['shoes', 3] }],
+  ['StrideNaija', 'Sports Slides', 6000, 'shoe', '#212121', '#43a047', 1, 'ct', 'Comfy slides for the house, the beach and the gym.', { style: 'slide', size: 'Size 43', fashion: ['shoes', 4] }],
+  ['Aba Made', 'Leather Sandals', 12000, 'shoe', '#a1662f', '#3e2723', 1, 'ct', 'Strappy leather sandals with a brass buckle.', { style: 'sandal', size: 'Size 42', fashion: ['shoes', 5] }],
+  // Fashion corner · eyewear
+  ['SunGuard', 'Black Sunglasses', 7500, 'glasses', '#111111', '#2a2a2a', 1, 'ct', 'UV400 sunglasses for Lagos sunshine.', { style: 'sun', size: 'One size', fashion: ['glasses', 0] }],
+  ['SunGuard', 'Pilot Sunglasses', 9000, 'glasses', '#c9a227', '#2e4a2e', 1, 'ct', 'Gold-frame pilot sunglasses with green lenses.', { style: 'pilot', size: 'One size', fashion: ['glasses', 1] }],
+  ['ClearView Optics', 'Reading Glasses +1.5', 5000, 'glasses', '#5d4037', '#e3f2fd', 1, 'ct', 'Light reading glasses, strength +1.5.', { style: 'clear', size: '+1.5', fashion: ['glasses', 2] }],
+  ['ClearView Optics', 'Blue Light Glasses', 8500, 'glasses', '#1565c0', '#d6ecff', 1, 'ct', 'Cuts blue light from phone and laptop screens.', { style: 'clear', size: 'One size', fashion: ['glasses', 3] }],
+  // Fashion corner · caps and hats
+  ['Eko Mart', 'Logo Cap', 3500, 'cap', '#1f7a55', '#ffffff', 1, 'ct', 'Eko Mart green cap with an embroidered logo.', { style: 'baseball', size: 'Adjustable', fashion: ['caps', 0] }],
+  ['Lagos Lids', 'Baseball Cap', 4000, 'cap', '#212121', '#ffd600', 1, 'ct', 'Black six-panel cap with a curved brim.', { style: 'baseball', size: 'Adjustable', fashion: ['caps', 1] }],
+  ['Ankara House', 'Aso-Oke Fila', 6500, 'cap', '#6a1b9a', '#ffd54f', 1, 'ct', 'Handwoven aso-oke cap for weddings and Sunday best.', { style: 'fila', size: 'Size 58', w: 0.2, h: 0.11, d: 0.2, fashion: ['caps', 2] }],
+  ['Lagos Lids', 'Bucket Hat', 5000, 'cap', '#e8dcc0', '#795548', 1, 'ct', 'Soft cotton bucket hat for sun and shade.', { style: 'bucket', size: 'One size', w: 0.26, h: 0.085, d: 0.26, fashion: ['caps', 3] }],
+  // Fashion corner · folded clothes
+  ['Eko Threads', 'Plain White T-Shirt', 5500, 'folded', '#fafafa', '#1f7a55', 1, 'ct', 'Soft cotton crew-neck tee.', { fabric: 'tee', size: 'Size L', fashion: ['folded', 0] }],
+  ['Naija Denim Co.', 'Blue Jeans', 15000, 'folded', '#3f5a8a', '#e08a2e', 1, 'ct', 'Straight-leg denim jeans with a leather patch.', { fabric: 'denim', size: 'W32 L32', fashion: ['folded', 1] }],
+  ['Ankara House', 'Ankara Wrapper (6 Yards)', 18000, 'folded', '#e65100', '#1a237e', 1, 'ct', 'Six yards of bold wax-print fabric, ready for the tailor.', { fabric: 'ankara', c3: '#ffd600', size: '6 yards', fashion: ['folded', 2] }],
+  ['Eko Threads', 'Kids T-Shirt', 3500, 'folded', '#ffca28', '#d32f2f', 1, 'ct', 'Bright cotton tee for kids.', { fabric: 'tee', w: 0.24, d: 0.2, size: 'Age 6–8', fashion: ['folded', 3] }],
+  // Fashion corner · hanging clothes
+  ['Ankara House', 'Ankara Print Shirt', 12000, 'hanger', '#00897b', '#ffd600', 1, 'ct', 'Short-sleeve shirt in a bold ankara print.', { fabric: 'ankara', c3: '#d84315', style: 'shirt', size: 'Size L', fashion: ['hang', 0] }],
+  ['Eko Threads', 'Green-White Football Jersey', 10000, 'hanger', '#008751', '#ffffff', 1, 'ct', 'Green and white jersey for match day.', { fabric: 'jersey', style: 'jersey', size: 'Size M', fashion: ['hang', 1] }],
+  ['Ankara House', 'Embroidered Kaftan', 25000, 'hanger', '#f3ede1', '#c9a227', 1, 'ct', 'Flowing kaftan with gold embroidery at the neck.', { fabric: 'kaftan', style: 'kaftan', size: 'Size XL', w: 0.58, h: 1.05, fashion: ['hang', 2] }],
+
+  // Grab & go stand by the till
+  ['LoveGuard', 'Strawberry Condoms', 1800, 'box', '#c2185b', '#ffffff', 3, 'ct', 'Three strawberry-flavoured latex condoms.', { art: 'strawberry', w: 0.085, h: 0.11, d: 0.03, rack: 0 }],
+  ['SafeHaven', 'Studded Condoms', 1800, 'box', '#263238', '#ff9800', 3, 'ct', 'Three studded latex condoms.', { art: 'shield', w: 0.085, h: 0.11, d: 0.03, rack: 1 }],
+  ['LoveGuard', 'Extra Large Condoms', 2000, 'box', '#4a148c', '#ffd600', 3, 'ct', 'Three extra-large latex condoms.', { art: 'shield', badge: 'XL', w: 0.085, h: 0.11, d: 0.03, rack: 2 }],
+  ['Minty Pop', 'Chewing Gum', 300, 'box', '#00acc1', '#ffffff', 10, 'ct', 'Ten pieces of peppermint gum.', { art: 'leaf', w: 0.08, h: 0.05, d: 0.02, rack: 3 }],
+  ['Cool Drops', 'Menthol Sweets', 200, 'pillow', '#1e88e5', '#ffffff', 20, 'ct', 'A bag of cooling menthol sweets.', { art: 'leaf', finish: 'foil', w: 0.09, h: 0.12, d: 0.025, rack: 4 }],
+  ['Lolly Land', 'Fruit Lollipops', 1500, 'jar', '#e91e63', '#ffeb3b', 30, 'ct', 'A jar of thirty fruity lollipops.', { art: 'strawberry', contents: '#f06292', r: 0.055, h: 0.14, cap: '#ffeb3b', rack: 5 }],
 ];
 
 // The fridge bank on the back wall: 8 glass doors, each 0.8 m wide.
@@ -140,7 +190,9 @@ function unitPrice(price, q, u) {
 }
 
 /** Where a product lives, for the product card and messages. */
-export const placeName = (p) => (p.fridge != null ? 'the fridges at the back' : p.endcap ? 'the promo stand at the front' : 'aisle ' + p.face.aisle);
+export const placeName = (p) => (p.fridge != null ? 'the fridges at the back' : p.endcap ? 'the promo stand at the front'
+  : p.fashion ? 'the fashion corner in aisle 1' : p.rack != null ? 'the stand by the till' : 'aisle ' + p.face.aisle);
+const FASHION_CAT = { shoes: 'Shoes', glasses: 'Eyewear', caps: 'Caps & hats', folded: 'Clothing', hang: 'Clothing' };
 
 // A NAFDAC-style registration number, made up but stable per product.
 const nafdac = (i) => `${'ABCD'[i % 4]}${1 + (i % 9)}-${String(1000 + ((i * 7919) % 8999)).padStart(4, '0')}`;
@@ -151,7 +203,9 @@ export const PRODUCTS = RAW.map((r, i) => {
   const round = ROUND.has(shape);
   const W = round ? d.r * 2 : d.w;
   const D = round ? d.r * 2 : d.d;
-  const face = o.fridge != null ? FRIDGE_FACE : o.endcap ? ENDCAP_FACE(o.endcap[0]) : o.strip ? FACES[o.strip[0]] : FACES[Math.floor(i / 8)];
+  const face = o.fridge != null ? FRIDGE_FACE : o.endcap ? ENDCAP_FACE(o.endcap[0]) : o.strip ? FACES[o.strip[0]]
+    : o.fashion ? { fashion: true, aisle: 1, cat: 'Fashion · ' + FASHION_CAT[o.fashion[0]], g: FASHION.wallX, side: 1 }
+      : o.rack != null ? { rack: true, aisle: 0, cat: 'Grab & go', g: RACK.x, side: -1 } : FACES[Math.floor(i / 8)];
   return {
     id: i, brand, line, price, shape, c1, c2, desc, round, q, u,
     art: o.art || 'leaf', badge: o.badge || null, finish: o.finish || (shape === 'sack' ? 'fabric' : 'paper'),
@@ -160,6 +214,9 @@ export const PRODUCTS = RAW.map((r, i) => {
     dims: d, W, D, H: d.h, maxDim: Math.max(W, D, d.h),
     face, level: Math.floor((i % 8) / 2), half: i % 2,
     fridge: o.fridge != null ? o.fridge : null, endcap: o.endcap || null, strip: o.strip || null,
+    fashion: o.fashion || null, rack: o.rack != null ? o.rack : null, style: o.style || null, fabric: o.fabric || null, c3: o.c3 || c2,
     size: o.size || sizeLabel(q, u), unit: unitPrice(price, q, u), nafdac: nafdac(i),
+    // hanging clothes are folded before they go in a basket
+    fold: shape === 'hanger' ? { W: 0.3, H: 0.05, D: 0.24 } : null,
   };
 });

@@ -18,13 +18,13 @@ const LOOKS = [
   { skin: SKIN[0], shirt: '#2e7d32', pants: '#5d4037', hair: 'puff' },
   { skin: SKIN[5], shirt: '#ffffff', pants: '#1a237e', hair: 'short', hairColor: '#2b2b2b' },
 ];
-const GREETINGS = ['Good day! Welcome to Eko Fresh Mart.', 'You are welcome, oga. Baskets dey your hand already.', 'Welcome! Enjoy your shopping.'];
+const GREETINGS = ['Good day! Welcome to Eko Mart.', 'You are welcome, oga. Baskets dey your hand already.', 'Welcome! Enjoy your shopping.'];
 const GOODBYES = ['Thank you, safe journey!', 'Thank you o, come again!', 'Bye bye, see you next time.'];
 const ANNOUNCEMENTS = [
   'Attention shoppers. Buy two Sharp Sharp noodles and get one free, in aisle three. Today only.',
   'Good day, customers. Chilled drinks are waiting for you in the fridges at the back of the store.',
   'Attention please. Would the owner of a silver Camry parked across the gate kindly move it. Thank you.',
-  'Dear customers, our tills close at ten p m. Thank you for shopping at Eko Fresh Mart.',
+  'Dear customers, our tills close at ten p m. Thank you for shopping at Eko Mart.',
   'Attention shoppers. Ofada Gold rice is now on promo. Grab your bag before it finishes!',
 ];
 const rand = (a, b) => a + Math.random() * (b - a);

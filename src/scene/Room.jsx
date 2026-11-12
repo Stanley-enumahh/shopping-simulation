@@ -1,6 +1,6 @@
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { AISLES, AISLE_X, ENDCAP, FACES, GONDOLAS, LEVELS } from '../data/products';
+import { AISLES, AISLE_X, ENDCAP, FACES, FASHION, GONDOLAS, LEVELS, RACK } from '../data/products';
 import { drawnTexture, fitLines, floorTexture, roundRect, softShadowTexture } from '../three/textures';
 import { world } from '../game/world';
 
@@ -81,7 +81,7 @@ function drawFront(g, W, H) {
 }
 function drawBackSign(g, W, H) {
   g.textAlign = 'center'; g.textBaseline = 'middle';
-  g.fillStyle = GREEN; g.font = `600 ${H * 0.46}px Fredoka, sans-serif`; g.fillText('Eko Fresh Mart', W / 2, H * 0.4);
+  g.fillStyle = GREEN; g.font = `600 ${H * 0.46}px Fredoka, sans-serif`; g.fillText('Eko Mart', W / 2, H * 0.4);
   g.fillStyle = MUTED; g.font = `500 ${H * 0.15}px Figtree, sans-serif`; g.fillText('EVERYTHING FOR YOUR KITCHEN  ·  LEKKI, LAGOS', W / 2, H * 0.82);
 }
 
@@ -107,7 +107,7 @@ export function Room() {
       ))}
       <Sign w={16} h={3.6} px={2048} draw={drawFront} basic position={[0, 1.8, 11]} rotation-y={Math.PI} />
       <Sign w={8} h={1.1} px={2048} draw={drawBackSign} position={[0, 2.95, -10.98]} />
-      <Sign w={6} h={1} px={1536} draw={wallWord('Snacks')} position={[-7.98, 2.3, 0]} rotation-y={Math.PI / 2} />
+      <Sign w={6} h={0.8} px={1536} draw={wallWord('Fashion Corner')} position={[-7.98, 2.65, 0]} rotation-y={Math.PI / 2} />
       <Sign w={6} h={1} px={1536} draw={wallWord('Home & Health')} position={[7.98, 2.3, 0]} rotation-y={-Math.PI / 2} />
       {AISLE_X.map((x, i) => <AisleSign key={x} n={i + 1} x={x} />)}
     </group>
@@ -172,7 +172,90 @@ function EndCap({ left, right, M }) {
   );
 }
 
+const OAK = new THREE.MeshStandardMaterial({ color: '#c9a27a', roughness: 0.75 });
+const PANEL = new THREE.MeshStandardMaterial({ color: '#efe6d8', roughness: 0.85 });
+const CHROME = new THREE.MeshStandardMaterial({ color: '#d3d8db', metalness: 0.85, roughness: 0.22 });
+// Mirror glass: a soft sky-grey gradient with light streaks reads as a reflection without a second render.
+function mirrorDraw(g, W, H) {
+  const gr = g.createLinearGradient(0, 0, W, H); gr.addColorStop(0, '#f4f8fa'); gr.addColorStop(0.5, '#d5e1e6'); gr.addColorStop(1, '#eef3f5');
+  g.fillStyle = gr; g.fillRect(0, 0, W, H);
+  g.fillStyle = 'rgba(255,255,255,.55)';
+  for (const [x, w] of [[0.18, 0.08], [0.32, 0.03], [0.62, 0.1]]) { g.beginPath(); g.moveTo(W * x, H); g.lineTo(W * (x + w), H); g.lineTo(W * (x + w + 0.35), 0); g.lineTo(W * (x + 0.35), 0); g.fill(); }
+}
+function sectionSign(text) {
+  return (c, W, H) => {
+    c.fillStyle = INK; roundRect(c, 3, 3, W - 6, H - 6, H * 0.2); c.fill();
+    c.fillStyle = '#ffffff'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    const f = fitLines(c, text, W * 0.9, H * 0.56, (s) => `600 ${s}px Fredoka, sans-serif`, 1, 1);
+    c.font = f.font; c.fillText(f.lines[0], W / 2, H * 0.54);
+  };
+}
+/** Fashion corner on the left wall: oak shelves for shoes, eyewear, caps and folded clothes, arms for hanging clothes and a mirror. */
+function FashionWall() {
+  const F = FASHION, x0 = F.wallX, xc = x0 + F.depth / 2, front = x0 + F.depth;
+  const shelves = ['shoes', 'glasses', 'caps', 'folded'].flatMap((k) => F[k].levels.flatMap((y) => F[k].runs.map(([z0, z1]) => [y, z0 - 0.05, z1 + 0.05])));
+  const uprights = [-7.15, -4.8, -2.5, -0.6, 1.05, 1.55, 4.3, 7.15];
+  return (
+    <group>
+      <Box size={[0.03, 2.1, 14.4]} mat={PANEL} position={[x0 + 0.015, 1.05, 0]} occluder />
+      <Box size={[F.depth, 0.12, 14.4]} mat={OAK} position={[xc, 0.06, 0]} />
+      {uprights.map((z) => <Box key={z} size={[0.04, 2.1, 0.03]} mat={OAK} position={[x0 + 0.05, 1.05, z]} />)}
+      {shelves.map(([y, z0, z1]) => (
+        <group key={y + ':' + z0}>
+          <Box size={[F.depth, 0.025, z1 - z0]} mat={OAK} position={[xc, y - 0.0125, (z0 + z1) / 2]} />
+          {[z0 + 0.06, z1 - 0.06].map((z) => <Box key={z} size={[F.depth - 0.04, 0.008, 0.012]} mat={CHROME} position={[xc, y - 0.03, z]} />)}
+        </group>
+      ))}
+      {/* face-out arms for clothes on hangers */}
+      {F.hang.arms.map((z) => (
+        <group key={z}>
+          <Box size={[0.02, 0.12, 0.05]} mat={CHROME} position={[x0 + 0.04, F.hang.hook - 0.02, z]} />
+          <mesh position={[x0 + F.hang.length / 2 + 0.03, F.hang.hook, z]} rotation-z={Math.PI / 2} material={CHROME}>
+            <cylinderGeometry args={[0.009, 0.009, F.hang.length, 10]} />
+          </mesh>
+          <mesh position={[x0 + F.hang.length + 0.03, F.hang.hook, z]} material={CHROME}><sphereGeometry args={[0.016, 12, 8]} /></mesh>
+        </group>
+      ))}
+      {/* mirror between the eyewear and the clothes */}
+      <Box size={[0.03, 1.16, F.mirror.w + 0.05]} mat={OAK} position={[x0 + 0.045, 1.46, F.mirror.z]} />
+      <Sign w={F.mirror.w} h={1.1} px={256} draw={mirrorDraw} basic position={[x0 + 0.062, 1.46, F.mirror.z]} rotation-y={Math.PI / 2} />
+      {[['SHOES', -4.8], ['EYEWEAR · CAPS', -0.6], ['CLOTHING', 5.25]].map(([t, z]) => (
+        <Sign key={t} w={1.3} h={0.22} px={512} draw={sectionSign(t)} position={[x0 + 0.08, 2.02, z]} rotation-y={Math.PI / 2} />
+      ))}
+      <Box size={[0.05, 0.05, 14.4]} mat={OAK} position={[front - 0.02, 2.12, 0]} />
+    </group>
+  );
+}
+/** Small "Grab & go" stand at the end of the till: three shelves behind a header card. */
+function TillRack() {
+  const R = RACK, zc = R.z0 + R.depth / 2, sign = useMemo(() => sectionSign('GRAB & GO'), []);
+  return (
+    <group>
+      <Box size={[R.width + 0.04, R.levels[0], R.depth + 0.02]} mat={OAK} position={[R.x, R.levels[0] / 2, zc]} />
+      <Box size={[R.width + 0.04, 1.5, 0.02]} mat={PANEL} position={[R.x, 0.75, R.z0 + R.depth + 0.01]} />
+      {[-1, 1].map((s) => <Box key={s} size={[0.02, 1.5, R.depth + 0.02]} mat={OAK} position={[R.x + s * (R.width / 2 + 0.01), 0.75, zc]} />)}
+      {R.levels.slice(1).map((y) => (
+        <group key={y}>
+          <Box size={[R.width, 0.02, R.depth]} mat={OAK} position={[R.x, y - 0.01, zc]} />
+          <Box size={[R.width, 0.03, 0.008]} mat={PROMO_RED} position={[R.x, y + 0.006, R.z0 + 0.004]} />
+        </group>
+      ))}
+      <Box size={[R.width, 0.03, 0.008]} mat={PROMO_RED} position={[R.x, R.levels[0] + 0.006, R.z0 + 0.004]} />
+      <Sign w={R.width + 0.04} h={0.16} px={512} draw={sign} position={[R.x, 1.58, R.z0 + R.depth - 0.001]} rotation-y={Math.PI} />
+    </group>
+  );
+}
+
 export function Gondolas() {
+  return (
+    <>
+      <GondolaRuns />
+      <FashionWall />
+      <TillRack />
+    </>
+  );
+}
+function GondolaRuns() {
   const M = useMemo(() => ({
     base: new THREE.MeshLambertMaterial({ color: '#d5dbd6' }), panel: new THREE.MeshLambertMaterial({ color: '#e8ece8' }),
     shelf: new THREE.MeshLambertMaterial({ color: '#f6f7f5' }), lip: new THREE.MeshLambertMaterial({ color: '#ffffff' }),

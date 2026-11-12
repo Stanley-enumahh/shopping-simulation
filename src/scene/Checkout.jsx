@@ -42,7 +42,7 @@ export default function Checkout() {
       g.textAlign = 'right'; g.font = '600 86px "DM Mono", monospace'; g.fillText(value, 488, 170); g.textAlign = 'left';
       t.needsUpdate = true;
     };
-    draw('EKO FRESH MART', 'WELCOME');
+    draw('EKO MART', 'WELCOME');
     return { texture: t, draw };
   }, []);
   const tillSign = useMemo(() => drawnTexture(1.2, 0.36, 768, (g, W, H) => {

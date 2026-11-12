@@ -1,7 +1,8 @@
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { ENDCAP, FACES, FRIDGE, GONDOLAS, LEVELS, PRODUCTS } from '../data/products';
+import { ENDCAP, FACES, FASHION, FRIDGE, GONDOLAS, LEVELS, PRODUCTS, RACK } from '../data/products';
 import { matFor, partsFor } from '../three/productModels';
+import { hookPoint } from '../three/fashion';
 import { promoTexture, rng, tagTexture } from '../three/textures';
 import { registerType } from '../game/world';
 
@@ -65,11 +66,47 @@ function layoutStrip(p) {
   };
 }
 
+/** Fashion corner on the left wall: items face +X into aisle 1; clothes hang on face-out arms. */
+function layoutFashion(p) {
+  const [sec, idx] = p.fashion, F = FASHION, yaw = Math.PI / 2, rnd = rng(p.id * 73 + 1), c = collector(p);
+  if (sec === 'hang') {
+    const z = F.hang.arms[idx], hk = hookPoint(p), n = 6;
+    for (let k = 0; k < n; k++) {
+      // local +X of the garment turns to world -Z, so shift by the hook offset to hang it on the bar
+      c.add(F.wallX + 0.1 + k * ((F.hang.length - 0.16) / (n - 1)) - hk.z, F.hang.hook - hk.y, z + hk.x, yaw + (rnd() - 0.5) * 0.04);
+    }
+    return { ...c, tag: { pos: [F.wallX + F.hang.length + 0.012, F.hang.hook + 0.05, z], ry: yaw, small: true } };
+  }
+  const S = F[sec], per = S.runs.length, top = S.levels[Math.floor(idx / per)], [z0, z1] = S.runs[idx % per];
+  const gap = sec === 'shoes' ? 0.08 : sec === 'folded' ? 0.04 : 0.05;
+  const step = p.W + gap, n = Math.max(1, Math.floor((z1 - z0) / step)), pad = (z1 - z0 - n * step) / 2;
+  const stack = sec === 'folded' ? 3 : 1, front = F.wallX + F.depth;
+  for (let s = 0; s < stack; s++) for (let j = 0; j < n; j++) {
+    c.add(front - 0.03 - p.D / 2 + (rnd() - 0.5) * 0.01, top + s * (p.H + 0.002), z0 + pad + (j + 0.5) * step + (rnd() - 0.5) * 0.008,
+      yaw + (rnd() - 0.5) * (sec === 'folded' ? 0.05 : 0.12));
+  }
+  return { ...c, tag: { pos: [front + 0.0035, top - 0.008, (z0 + z1) / 2], ry: yaw } };
+}
+
+/** "Grab & go" stand by the till: small things facing the queue (-Z), two per shelf. */
+function layoutRack(p) {
+  const R = RACK, top = R.levels[Math.floor(p.rack / 2)], half = p.rack % 2, x0 = R.x - R.width / 2 + half * (R.width / 2) + 0.01, x1 = x0 + R.width / 2 - 0.02;
+  const step = p.W + 0.008, n = Math.max(1, Math.floor((x1 - x0) / step)), pad = (x1 - x0 - n * step) / 2;
+  const rows = Math.max(1, Math.min(3, Math.floor((R.depth - 0.02) / (p.D + 0.012))));
+  const stack = p.H < 0.08 ? 2 : 1, rnd = rng(p.id * 19 + 4), c = collector(p);
+  for (let s = 0; s < stack; s++) for (let r = 0; r < rows; r++) for (let j = 0; j < n; j++) {
+    c.add(x0 + pad + (j + 0.5) * step, top + s * (p.H + 0.002), R.z0 + 0.015 + p.D / 2 + r * (p.D + 0.012), Math.PI + (rnd() - 0.5) * (p.round ? 0.5 : 0.06));
+  }
+  return { ...c, tag: { pos: [(x0 + x1) / 2, top - 0.008, R.z0 - 0.0035], ry: Math.PI, small: true } };
+}
+
 /** Lays out every facing of one product along its shelf run. */
 function layoutRun(p) {
   if (p.fridge != null) return layoutFridge(p);
   if (p.endcap) return layoutEndcap(p);
   if (p.strip) return layoutStrip(p);
+  if (p.fashion) return layoutFashion(p);
+  if (p.rack != null) return layoutRack(p);
   const { face, level, half } = p, top = LEVELS[level];
   const z0 = half === 0 ? -6.9 : 0.1, z1 = half === 0 ? -0.1 : 6.9;
   const gap = 0.012, step = p.W + gap, n = Math.floor((z1 - z0) / step), pad = (z1 - z0 - n * step) / 2;

@@ -43,7 +43,7 @@ function TopBar() {
     <header className="top">
       <div className="chip where">
         <span className="logo"><Leaf /></span>
-        <div><b>Eko Fresh Mart</b><span>{aisle}</span></div>
+        <div><b>Eko Mart</b><span>{aisle}</span></div>
       </div>
       <div className="right">
         <button className="iconbtn" onClick={(e) => { e.currentTarget.blur(); sfx.click(); setState({ settingsOpen: true, cartOpen: false }); }} aria-label="Settings" title="Settings">
@@ -173,7 +173,7 @@ function InspectCard() {
     <>
       {dragHint && <div className="draghint" aria-hidden="true"><span className="finger" /><b>Drag to turn it over</b></div>}
       <section className="inspect" aria-live="polite">
-        <p className="eyebrow">{p.fridge != null ? 'Fridge' : p.endcap ? 'Front stand' : 'Aisle ' + p.face.aisle} · {p.face.cat}</p>
+        <p className="eyebrow">{p.fridge != null ? 'Fridge' : p.endcap ? 'Front stand' : p.fashion ? 'Fashion corner' : p.rack != null ? 'Till stand' : 'Aisle ' + p.face.aisle} · {p.face.cat}</p>
         {p.promo && <p className="promoline">Promo! Was <s>{fmt(p.promo.was)}</s>, now {fmt(p.price)}</p>}
         <h2><small>{p.brand}</small>{p.line}</h2>
         <p className="desc">{p.desc}</p>
@@ -348,7 +348,7 @@ function Intro() {
   return (
     <div className="modal">
       <div className="introcard" role="dialog" aria-labelledby="introTitle">
-        <h1 id="introTitle">Eko Fresh Mart</h1>
+        <h1 id="introTitle">Eko Mart</h1>
         <p>Your neighbourhood supermarket in Lekki. Walk the aisles, pick something off the shelf, drop it in your basket, then pay at the till.</p>
         <dl className="controls">{rows.map(([k, v], i) => <div key={i}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
         <button className="btn primary big" disabled={phase !== 'intro'} onClick={startGame}>
@@ -368,7 +368,7 @@ function Receipt() {
   return (
     <div className="modal">
       <div className="paper" role="dialog" aria-labelledby="rcTitle">
-        <h2 id="rcTitle">Eko Fresh Mart</h2>
+        <h2 id="rcTitle">Eko Mart</h2>
         <p className="addr">Plot 14, Admiralty Way, Lekki · Open daily 8am to 10pm</p>
         <p className="date">{r.date.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })} · Till 2 · {r.cashier}</p>
         <ul>
@@ -403,13 +403,13 @@ function FlyerModal() {
   const canShareFile = !!(file && navigator.canShare && navigator.canShare({ files: [file] }));
   const close = () => { sfx.click(); URL.revokeObjectURL(f.url); setState({ flyer: null }); };
   const share = async () => {
-    try { await navigator.share({ files: [file], title: 'My Eko Fresh Mart basket', text: message }); } catch (e) { /* cancelled */ }
+    try { await navigator.share({ files: [file], title: 'My Eko Mart basket', text: message }); } catch (e) { /* cancelled */ }
   };
   return (
     <div className="modal">
       <div className="flyer" role="dialog" aria-labelledby="flyTitle">
         <h2 id="flyTitle">Share your basket</h2>
-        <img src={f.url} alt="Flyer showing the items you bought at Eko Fresh Mart and your total" />
+        <img src={f.url} alt="Flyer showing the items you bought at Eko Mart and your total" />
         <div className="sharegrid">
           {canShareFile && <button className="btn primary span2" onClick={share}>Share picture…</button>}
           <a className="btn wa" href={`https://wa.me/?text=${encodeURIComponent(message)}`} target="_blank" rel="noopener noreferrer">WhatsApp</a>

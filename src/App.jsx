@@ -12,7 +12,7 @@ class WebGLGuard extends Component {
     if (!this.state.failed) return this.props.children;
     return (
       <div className="modal"><div className="introcard">
-        <h1>Eko Fresh Mart</h1>
+        <h1>Eko Mart</h1>
         <p>This browser could not start 3D graphics. Try a recent Chrome, Edge, Safari or Firefox.</p>
       </div></div>
     );

@@ -52,7 +52,7 @@ export function startCheckout() {
     return { m, p: PRODUCTS[e.ti] };
   });
   pileH = 0;
-  T.display.draw('EKO FRESH MART', fmt(0));
+  T.display.draw('EKO MART', fmt(0));
   say('Cashier', 'Good day! Let me ring these up for you.', { delay: 0.7 });
 
   const gap = 0.95;
@@ -150,7 +150,7 @@ function clearCounter() {
   for (const it of counterItems) if (it.m.parent) it.m.parent.remove(it.m);
   counterItems = []; pileH = 0;
   T.basket.visible = false; T.beltMoving = false; T.cashierReach = 0;
-  T.display.draw('EKO FRESH MART', 'WELCOME');
+  T.display.draw('EKO MART', 'WELCOME');
 }
 export function cancelCheckout() {
   run++;

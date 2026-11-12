@@ -60,7 +60,7 @@ export async function makeFlyer(receipt) {
   g.fillStyle = 'rgba(255,255,255,.16)'; roundRect(g, 60, 62, 104, 104, 28); g.fill();
   leaf(g, 72, 74, 80);
   g.fillStyle = '#fff'; g.textBaseline = 'alphabetic'; g.textAlign = 'left';
-  g.font = '600 78px Fredoka, Figtree, sans-serif'; g.fillText('Eko Fresh Mart', 196, 140);
+  g.font = '600 78px Fredoka, Figtree, sans-serif'; g.fillText('Eko Mart', 196, 140);
   g.fillStyle = '#d4efe2'; g.font = '500 30px Figtree, sans-serif'; g.fillText('Everything for your kitchen · Lekki, Lagos', 198, 190);
   // "just shopped" sticker
   g.save(); g.translate(930, 250); g.rotate(-0.18);
@@ -107,6 +107,6 @@ export async function makeFlyer(receipt) {
   g.fillText(`Paid by ${receipt.method || 'card'} · Shop with me${link ? ' at ' + link : ''}`, W / 2, ty + 150);
 
   const blob = await new Promise((res) => c.toBlob(res, 'image/png'));
-  const text = `Just did my shopping at Eko Fresh Mart 🛒 ${count} item${count === 1 ? '' : 's'} for ${fmt(total)}. Come and shop with me!`;
+  const text = `Just did my shopping at Eko Mart 🛒 ${count} item${count === 1 ? '' : 's'} for ${fmt(total)}. Come and shop with me!`;
   return { blob, text, link: shareLink(), url: URL.createObjectURL(blob) };
 }

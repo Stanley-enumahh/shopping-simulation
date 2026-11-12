@@ -2,6 +2,9 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { backTexture, contentsTexture, labelTexture, tint } from './textures';
 import { roundedBox } from './geometry';
+import { fashionMat, fashionParts, foldedVersion } from './fashion';
+
+const FASHION_SHAPES = new Set(['shoe', 'cap', 'glasses', 'folded', 'hanger']);
 
 // Every pack sits on its base at the origin with its front label facing +Z.
 // partsFor(p) returns [{ geo, role, order }]; matFor(p, role, res) gives the material for that role.
@@ -77,6 +80,7 @@ function sachetStack(w, h, d) {
 export function partsFor(p) {
   if (p._parts) return p._parts;
   const P = [], d = p.dims, s = p.shape;
+  if (FASHION_SHAPES.has(s)) return (p._parts = fashionParts(p));
   const add = (geo, role, order = 0) => P.push({ geo, role, order });
   const wrapAspect = (r, h) => (2 * Math.PI * r) / h;
 
@@ -167,6 +171,7 @@ export function partsFor(p) {
 }
 
 export function matFor(p, role, res) {
+  if (role.startsWith('f:')) return fashionMat(p, role, res);
   p._m = p._m || {};
   const labelled = role === 'pack' || role === 'labelCyl' || role === 'band' || role === 'labelPlane' || role === 'backPlane';
   const key = labelled ? role + res : role;
@@ -211,15 +216,16 @@ export function matFor(p, role, res) {
 }
 
 /** A standalone copy of a product: high resolution for holding up close, 'lo' for things seen from afar. */
-export function buildProductMesh(p, res = 'hi') {
+export function buildProductMesh(p, res = 'hi', parts = partsFor(p)) {
   const g = new THREE.Group();
-  for (const pt of partsFor(p)) { const m = new THREE.Mesh(pt.geo, matFor(p, pt.role, res)); m.renderOrder = pt.order; g.add(m); }
+  for (const pt of parts) { const m = new THREE.Mesh(pt.geo, matFor(p, pt.role, res)); m.renderOrder = pt.order; g.add(m); }
   return g;
 }
 
 /** A product that sits centred on its own middle (for baskets), instead of on its base. */
 export function centredProduct(p, res = 'lo') {
-  const outer = new THREE.Group(), inner = buildProductMesh(p, res);
-  inner.position.y = -p.H / 2; outer.add(inner);
+  // clothes on hangers go in the basket folded
+  const outer = new THREE.Group(), inner = buildProductMesh(p, res, p.fold ? foldedVersion(p) : partsFor(p));
+  inner.position.y = -(p.fold ? p.fold.H : p.H) / 2; outer.add(inner);
   return outer;
 }

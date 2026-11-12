@@ -1,8 +1,9 @@
 import * as THREE from 'three';
-import { PRODUCTS, AISLES, GONDOLAS, TILL, FRIDGE, ENDCAP, placeName } from '../data/products';
+import { PRODUCTS, AISLES, GONDOLAS, TILL, FRIDGE, ENDCAP, FASHION, RACK, placeName } from '../data/products';
 import { getState, setState } from '../store';
 import { sfx } from './audio';
 import { buildProductMesh, centredProduct } from '../three/productModels';
+import { foldedVersion } from '../three/fashion';
 import { packBasket } from './basket';
 import { inTillZone, startCheckout } from './checkout';
 
@@ -41,6 +42,10 @@ const blockers = [
   { x0: TILL.cx - TILL.w / 2 - 0.03, x1: TILL.cx + TILL.w / 2 + 0.03, z0: TILL.cz - TILL.d / 2 - 0.03, z1: TILL.cz + TILL.d / 2 + 0.03 },
   { x0: TILL.cx - TILL.w / 2 - 0.08, x1: TILL.cx - TILL.w / 2 + 0.02, z0: TILL.cz + TILL.d / 2, z1: 10.6 },
   { x0: TILL.cx + TILL.w / 2, x1: 8, z0: TILL.cz + TILL.d / 2 - 0.05, z1: TILL.cz + TILL.d / 2 + 0.01 },
+  // fashion wall and its face-out clothes arms, and the grab & go stand by the till
+  { x0: -8, x1: FASHION.wallX + FASHION.depth + 0.05, z0: -7.25, z1: 7.25 },
+  ...FASHION.hang.arms.map((z) => ({ x0: -8, x1: FASHION.wallX + FASHION.hang.length + 0.1, z0: z - 0.3, z1: z + 0.3 })),
+  { x0: RACK.x - RACK.width / 2 - 0.03, x1: RACK.x + RACK.width / 2 + 0.03, z0: RACK.z0 - 0.04, z1: RACK.z0 + RACK.depth + 0.03 },
 ];
 const BACK_LIMIT = FRIDGE.front + 0.6; // stay in front of the fridge doors
 const WALK = 1.75; // walking speed in m/s
@@ -139,7 +144,7 @@ function reachPoint(target, out, maxLen = 0.56) {
 // Lowest point of the held item, so the palm can sit under it however it is turned.
 const e3 = new THREE.Matrix4();
 function supportPoint(held, out) {
-  const p = held.p, el = e3.makeRotationFromQuaternion(held.grp.quaternion).elements, s = held.grp.scale.x;
+  const p = held.foldedNow ? held.p.fold : held.p, el = e3.makeRotationFromQuaternion(held.grp.quaternion).elements, s = held.grp.scale.x;
   const ext = (Math.abs(el[1]) * p.W / 2 + Math.abs(el[5]) * p.H / 2 + Math.abs(el[9]) * p.D / 2) * s;
   return out.copy(held.grp.position).add(tmpV.set(0, -ext, 0));
 }
@@ -261,9 +266,14 @@ export function addToCart() {
   sfx.reach();
   const sp = h.grp.position.clone(), sq = h.grp.quaternion.clone();
   const tgt = { pos: new THREE.Vector3(), quat: new THREE.Quaternion() }, above = new THREE.Vector3();
-  let released = false;
+  let released = false, folded = !h.p.fold;
   tween(0.95, (k) => {
     const tt = k * 0.95;
+    if (!folded && tt > 0.3) {
+      // clothes on hangers get folded on the way to the basket
+      folded = h.foldedNow = true; h.grp.clear();
+      const m = buildProductMesh(h.p, 'hi', foldedVersion(h.p)); m.position.y = -h.p.fold.H / 2; h.grp.add(m);
+    }
     basketToView(slot, tgt);
     above.copy(tgt.pos); above.y += 0.1;
     if (tt < 0.6) {
