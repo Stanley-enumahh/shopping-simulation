@@ -1,6 +1,6 @@
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { AISLES, AISLE_X, FACES, GONDOLAS, LEVELS } from '../data/products';
+import { AISLES, AISLE_X, ENDCAP, FACES, GONDOLAS, LEVELS } from '../data/products';
 import { drawnTexture, fitLines, floorTexture, roundRect, softShadowTexture } from '../three/textures';
 import { world } from '../game/world';
 
@@ -140,6 +140,38 @@ function endSignDraw(a, b) {
   };
 }
 
+const WOOD = new THREE.MeshStandardMaterial({ color: '#b68a5a', roughness: 0.9 });
+const PROMO_RED = new THREE.MeshStandardMaterial({ color: '#d50000', roughness: 0.6 });
+function promoHeader(left, right) {
+  return (c, W, H) => {
+    c.fillStyle = '#d50000'; roundRect(c, 3, 3, W - 6, H - 6, H * 0.16); c.fill();
+    c.fillStyle = '#ffd600'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.font = `${H * 0.46}px "Bebas Neue", Impact, sans-serif`; c.fillText('PROMO · BIG SIZES', W / 2, H * 0.4);
+    c.fillStyle = '#ffffff'; c.font = `600 ${H * 0.17}px Fredoka, sans-serif`;
+    c.fillText(`‹ ${left}     ${right} ›`, W / 2, H * 0.78);
+  };
+}
+/** The front end of a gondola: pallet, two shelves with red lips, side panels and a promo header. */
+function EndCap({ left, right, M }) {
+  const z0 = ENDCAP.z, dz = ENDCAP.depth, zc = z0 + dz / 2;
+  return (
+    <group>
+      {/* pallet: deck boards on three runners */}
+      {[-0.4, 0, 0.4].map((x) => <Box key={'r' + x} size={[0.1, 0.07, dz - 0.02]} mat={WOOD} position={[x, 0.035, zc]} />)}
+      {[0, 1, 2, 3].map((k) => <Box key={'d' + k} size={[1.0, 0.025, 0.08]} mat={WOOD} position={[0, 0.0825 + 0.012, z0 + 0.06 + k * 0.1]} />)}
+      <Box size={[1.0, 0.012, dz - 0.02]} mat={WOOD} position={[0, ENDCAP.levels[0] - 0.006, zc]} />
+      {ENDCAP.levels.slice(1).map((top) => (
+        <group key={top}>
+          <Box size={[1.0, 0.025, dz]} mat={M.shelf} position={[0, top - 0.0125, zc]} />
+          <Box size={[1.0, 0.05, 0.012]} mat={PROMO_RED} position={[0, top - 0.005, z0 + dz]} />
+        </group>
+      ))}
+      {[-1, 1].map((s) => <Box key={s} size={[0.025, 1.72, dz]} mat={M.end} position={[s * 0.51, 0.86, zc]} />)}
+      <Sign w={1.04} h={0.3} px={768} draw={promoHeader(left, right)} position={[0, 1.9, z0 + 0.02]} />
+    </group>
+  );
+}
+
 export function Gondolas() {
   const M = useMemo(() => ({
     base: new THREE.MeshLambertMaterial({ color: '#d5dbd6' }), panel: new THREE.MeshLambertMaterial({ color: '#e8ece8' }),
@@ -165,10 +197,12 @@ export function Gondolas() {
         {[-1, 1].map((zs) => (
           <group key={zs}>
             <Box size={[1.06, 2.0, 0.05]} mat={M.end} position={[0, 1.0, zs * 7.18]} />
-            <Sign w={0.96} h={0.34} px={768} draw={zs > 0 ? endSignDraw(left, right) : endSignDraw(right, left)}
-              position={[0, 1.62, zs * 7.21]} rotation-y={zs > 0 ? 0 : Math.PI} />
+            {zs < 0 && (
+              <Sign w={0.96} h={0.34} px={768} draw={endSignDraw(right, left)} position={[0, 1.62, -7.21]} rotation-y={Math.PI} />
+            )}
           </group>
         ))}
+        <EndCap left={left} right={right} M={M} />
       </group>
     );
   });

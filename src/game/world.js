@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { PRODUCTS, AISLES, GONDOLAS, TILL, FRIDGE, placeName } from '../data/products';
+import { PRODUCTS, AISLES, GONDOLAS, TILL, FRIDGE, ENDCAP, placeName } from '../data/products';
 import { getState, setState } from '../store';
 import { sfx } from './audio';
 import { buildProductMesh, centredProduct } from '../three/productModels';
@@ -37,7 +37,7 @@ export const world = {
 };
 // Solid things you cannot walk through: shelf gondolas, the till counter and the cashier's pen.
 const blockers = [
-  ...GONDOLAS.map((g) => ({ x0: g - 0.53, x1: g + 0.53, z0: -7.22, z1: 7.22 })),
+  ...GONDOLAS.map((g) => ({ x0: g - 0.53, x1: g + 0.53, z0: -7.22, z1: ENDCAP.z + ENDCAP.depth + 0.02 })), // incl. the promo end-cap
   { x0: TILL.cx - TILL.w / 2 - 0.03, x1: TILL.cx + TILL.w / 2 + 0.03, z0: TILL.cz - TILL.d / 2 - 0.03, z1: TILL.cz + TILL.d / 2 + 0.03 },
   { x0: TILL.cx - TILL.w / 2 - 0.08, x1: TILL.cx - TILL.w / 2 + 0.02, z0: TILL.cz + TILL.d / 2, z1: 10.6 },
   { x0: TILL.cx + TILL.w / 2, x1: 8, z0: TILL.cz + TILL.d / 2 - 0.05, z1: TILL.cz + TILL.d / 2 + 0.01 },

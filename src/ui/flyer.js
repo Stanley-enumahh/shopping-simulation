@@ -21,9 +21,10 @@ function drawThumb(g, p, x, y, s) {
   roundRect(g, x, y, s, s, 18); g.clip();
   g.fillStyle = p.c1; g.fillRect(x, y, s, s);
   let img = null;
-  try { img = p._aspect ? labelTexture(p, p._aspect, p._wrap, 'lo').image : null; } catch (e) { img = null; }
+  try { img = p._label ? labelTexture(p, 'lo').image : null; } catch (e) { img = null; }
   if (img) {
-    const front = p._wrap ? Math.min(img.width, img.height * 1.2) : img.width; // a can's label wraps around: use the middle
+    const wraps = p._label.kind === 'wrap' || p._label.kind === 'band';
+    const front = wraps ? Math.min(img.width, img.height * 1.3) : img.width; // a can's label wraps around: use the middle
     const sx = (img.width - front) / 2, sw = front, sh = img.height;
     const k = Math.max(s / sw, s / sh), dw = sw * k, dh = sh * k;
     g.drawImage(img, sx, 0, sw, sh, x + (s - dw) / 2, y + (s - dh) / 2, dw, dh);

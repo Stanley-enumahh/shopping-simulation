@@ -164,6 +164,8 @@ body.touch .prompt { bottom: calc(env(safe-area-inset-bottom, 0px) + 158px); }
 .paywith { display: grid; gap: 10px; }
 .paywith p { margin: 0; color: var(--muted); }
 .btn.wide { width: 100%; }
+.promoline { margin: 0; font-size: 13px; font-weight: 700; color: #c62828; }
+.gamenote { margin: 0; font-size: 12px; color: var(--muted); text-align: center; }
 .linkbtn { color: var(--muted); font-size: 13px; text-decoration: underline; justify-self: center; padding: 4px; }
 .account { background: var(--paper); border-radius: 12px; padding: 12px 14px; display: grid; gap: 2px; }
 .account small { color: var(--muted); font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; }

@@ -173,7 +173,8 @@ function InspectCard() {
     <>
       {dragHint && <div className="draghint" aria-hidden="true"><span className="finger" /><b>Drag to turn it over</b></div>}
       <section className="inspect" aria-live="polite">
-        <p className="eyebrow">{p.fridge != null ? 'Fridge' : 'Aisle ' + p.face.aisle} · {p.face.cat}</p>
+        <p className="eyebrow">{p.fridge != null ? 'Fridge' : p.endcap ? 'Front stand' : 'Aisle ' + p.face.aisle} · {p.face.cat}</p>
+        {p.promo && <p className="promoline">Promo! Was <s>{fmt(p.promo.was)}</s>, now {fmt(p.price)}</p>}
         <h2><small>{p.brand}</small>{p.line}</h2>
         <p className="desc">{p.desc}</p>
         <div className="pricerow">
@@ -229,10 +230,11 @@ function TillPanel() {
         <div className="paywith">
           <div className="account">
             <small>Transfer exactly</small><b>{fmt(till.total)}</b>
-            <small>to</small><span>Eko Fresh Mart Ltd</span>
-            <span className="acct">0123 456 789 · Lagoon Bank</span>
+            <small>to</small><span>Enumah Stanley Oluebube</span>
+            <span className="acct">8130127556 · Opay</span>
           </div>
           <button className="btn primary wide" onClick={sentTransfer}>I have sent it</button>
+          <p className="gamenote">This is a game: the payment is pretend, so you don’t need to send real money.</p>
         </div>
       )}
       {till.stage === 'pending' && <div className="status"><i className="spinner" />Transfer pending… waiting for the alert</div>}
